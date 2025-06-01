@@ -1,0 +1,3 @@
+#!/bin/bash
+# Open the rendered image in Windows from WSL
+powershell.exe start res.jpeg

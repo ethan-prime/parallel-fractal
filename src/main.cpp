@@ -7,19 +7,21 @@
 #define RES_4K 3840, 2160
 #define RES_HD 1920, 1080
 
+f64 GAMMA = 0.5;
+
 int main(int argc, char *argv[])
 {
     // Defaults
     int width = 3840;
     int height = 2160;
-    int x1 = -2, y1 = -2, x2 = 2, y2 = 2;
+    double x1 = -2, y1 = -2, x2 = 2, y2 = 2;
     double c_real = -0.8, c_imag = 0.156;
     int max_iters = 500;
 
     if (argc < 2)
     {
-        std::cout << "Usage: " << argv[0] << " num_threads [width height x1 y1 x2 y2 c_real c_imag [max_iters]]\n";
-        std::cout << "Example: " << argv[0] << " 8 3840 2160 -2 -2 2 2 -0.8 0.156 500\n";
+        std::cout << "Usage: " << argv[0] << " num_threads [width height x1 y1 x2 y2 c_real c_imag [max_iters gamma]]\n";
+        std::cout << "Example: " << argv[0] << " 8 3840 2160 -2 -2 2 2 -0.8 0.156 500 0.5\n";
         return 1;
     }
 
@@ -31,22 +33,23 @@ int main(int argc, char *argv[])
     {
         if (argc < 10)
         {
-            std::cout << "Usage: " << argv[0] << " num_threads [width height x1 y1 x2 y2 c_real c_imag [max_iters]]\n";
-            std::cout << "Using defaults: 3840 2160 -2 -2 2 2 -0.8 0.156 500\n";
+            std::cout << "Usage: " << argv[0] << " num_threads [width height x1 y1 x2 y2 c_real c_imag [max_iters gamma]]\n";
+            std::cout << "Using defaults: 3840 2160 -2 -2 2 2 -0.8 0.156 500 0.5\n";
         }
         else
         {
             width = std::atoi(argv[2]);
             height = std::atoi(argv[3]);
-            x1 = std::atoi(argv[4]);
-            y1 = std::atoi(argv[5]);
-            x2 = std::atoi(argv[6]);
-            y2 = std::atoi(argv[7]);
+            x1 = std::atof(argv[4]);
+            y1 = std::atof(argv[5]);
+            x2 = std::atof(argv[6]);
+            y2 = std::atof(argv[7]);
             c_real = std::atof(argv[8]);
             c_imag = std::atof(argv[9]);
             if (argc > 10)
             {
                 max_iters = std::atoi(argv[10]);
+                GAMMA = std::atof(argv[11]);
             }
         }
     }

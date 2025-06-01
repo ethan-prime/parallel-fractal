@@ -26,14 +26,8 @@ typedef struct
     color_t color;
 } pixel;
 
-/*typedef union {
-    // julia function here, or a ptr idk
-} fractal_t;*/
+extern f64 GAMMA;
 
-typedef std::function<color_t(f64)> colormap_t;
-
-// Example: Wikipedia-style smooth blue-yellow-red colormap
-#define GAMMA 0.5
 inline color_t wikipedia_colormap(f64 t)
 {
     // Clamp t to [0,1]
@@ -46,9 +40,8 @@ inline color_t wikipedia_colormap(f64 t)
     if (t >= 1.0 - 1e-8)
         return color_t{10, 20, 80};
 
-     // Apply gamma correction to stretch out low t values
-    f64 gamma = GAMMA; // < 1.0 increases contrast near 0
-    f64 t_gamma = std::pow(t, gamma);
+    // Apply gamma correction to stretch out low t values
+    f64 t_gamma = std::pow(t, GAMMA);
 
     // Smooth polynomial coloring (Wikipedia style)
     f64 r = 9 * (1 - t_gamma) * t_gamma * t_gamma * t_gamma;
@@ -70,16 +63,18 @@ inline color_t wikipedia_colormap(f64 t)
         static_cast<channel>(clamp(b) * 0xFF)};
 }
 
+typedef std::function<color_t(f64)> colormap_t;
+
 class Image
 {
 private:
     i32 width;
     i32 height;
-    i32 x1, y1, x2, y2;
+    f64 x1, y1, x2, y2;
     pixel *pixels;
 
 public:
-    Image(i32 width, i32 height, i32 x1, i32 y1, i32 x2, i32 y2)
+    Image(i32 width, i32 height, f64 x1, f64 y1, f64 x2, f64 y2)
     {
         this->width = width;
         this->height = height;
@@ -90,7 +85,7 @@ public:
         this->y2 = y2;
     };
 
-    void Render(std::function<f64(CF64, CF64, i32)> fractal, CF64 c, i32 iters, i32 T, colormap_t colormap = nullptr)
+    void Render(std::function<f64(CF64, CF64, i32)> fractal, CF64 c, i32 iters, i32 T, colormap_t colormap = {})
     {
         // antialiasing: average 16 samples per pixel
         const int samples = 16;
