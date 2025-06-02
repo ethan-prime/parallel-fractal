@@ -24,3 +24,17 @@ f64 julia(CF64 z, CF64 c, i32 iters)
     }
     return 1.0;
 }
+
+f64 mandelbrot(CF64 c, CF64 _, i32 iters)
+{
+    CF64 z(0, 0);
+    for (int i = 0; i < iters; i++)
+    {
+        z = z*z + c;
+        if (std::abs(z) > R)
+        {
+            return static_cast<f64>(i) / iters;
+        }
+    }
+    return 1.0;
+}
