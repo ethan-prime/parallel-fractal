@@ -13,8 +13,8 @@ f64 GAMMA = 0.5;
 int main(int argc, char *argv[])
 {
     // Defaults
-    int width = 3840;
-    int height = 2160;
+    int width = 2000;
+    int height = 2000;
     double x1 = -2, y1 = -2, x2 = 2, y2 = 2;
     double c_real = -0.8, c_imag = 0.156;
     int max_iters = 500;
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     if (argc < 3)
     {
         std::cout << "Usage: " << argv[0] << " num_threads (julia|mandelbrot) [width height x1 y1 x2 y2 c_real c_imag [max_iters gamma]]\n";
-        std::cout << "Example: " << argv[0] << " 8 julia 3840 2160 -2 -2 2 2 -0.8 0.156 500 0.5\n";
+        std::cout << "Example: " << argv[0] << " 8 julia 2000 2000 -2 -2 2 2 -0.8 0.156 500 0.5\n";
         return 1;
     }
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         if (argc < 11)
         {
             std::cout << "Usage: " << argv[0] << " num_threads (julia|mandelbrot) [width height x1 y1 x2 y2 c_real c_imag [max_iters gamma]]\n";
-            std::cout << "Using defaults: 3840 2160 -2 -2 2 2 -0.8 0.156 500 0.5\n";
+            std::cout << "Using defaults: 2000 2000 -2 -2 2 2 -0.8 0.156 500 0.5\n";
         }
         else
         {
