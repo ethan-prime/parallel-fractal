@@ -1,6 +1,6 @@
 # parallel-fractal
 
-A fast, parallelized C++ renderer for Julia (and potentially Mandelbrot) fractals, using OpenMP for multi-threading and supporting high-quality anti-aliased output with customizable colormaps. Output images are saved as JPEGs.
+A fast, parallelized C++ renderer for Julia and Mandelbrot fractals, using OpenMP for multi-threading and supporting high-quality anti-aliased output with customizable colormaps. Output images are saved as JPEGs.
 
 ## Features
 
@@ -56,6 +56,6 @@ If running under WSL, use the provided script to open the image in Windows:
 
 ## About
 
-This project is for exploring and rendering fractal images (especially Julia sets) efficiently using modern C++ and parallelism. I designed it for my CS358 Final Project at Northwestern University with Professor Joe Hummel.
+This project is for exploring and rendering fractal images efficiently using modern C++ and parallelism. I designed it for my CS358 Final Project at Northwestern University with Professor Joe Hummel.
 
 ---
