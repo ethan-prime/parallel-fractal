@@ -57,6 +57,112 @@ void Image::Render(std::function<f64(CF64, CF64, i32)> fractal, CF64 c, i32 iter
     }
 }
 
+void Image::RenderBuddhabrot(i32 iters, i32 T, i64 samples, colormap_t colormap)
+{
+    const int supersample = 2; // 2x supersampling (render at 2x resolution)
+    i32 ss_width = this->width * supersample;
+    i32 ss_height = this->height * supersample;
+
+    const i64 max_dim = 65500;
+    if (ss_width > max_dim || ss_height > max_dim)
+    {
+        std::cerr << "Maximum supported image dimension is " << max_dim << " pixels\n";
+        return;
+    }
+
+    std::vector<std::vector<i64>> hist(ss_height, std::vector<i64>(ss_width, 0));
+
+#pragma omp parallel num_threads(T)
+    {
+        std::mt19937 rng(omp_get_thread_num() + 1234);
+        std::uniform_real_distribution<f64> dist_x(this->x1, this->x2);
+        std::uniform_real_distribution<f64> dist_y(this->y1, this->y2);
+
+        std::vector<std::vector<i64>> local_hist(ss_height, std::vector<i64>(ss_width, 0));
+
+#pragma omp for schedule(dynamic)
+        for (i64 s = 0; s < samples; ++s)
+        {
+            f64 cx = dist_x(rng);
+            f64 cy = dist_y(rng);
+            CF64 c(cx, cy);
+            CF64 z(0, 0);
+            std::vector<std::pair<f64, f64>> orbit;
+            bool escaped = false;
+
+            int escape_iter = -1;
+            for (int i = 0; i < iters; ++i)
+            {
+                z = z * z + c;
+                orbit.emplace_back(z.real(), z.imag());
+                if (std::abs(z) > 2.0)
+                {
+                    escaped = true;
+                    escape_iter = i;
+                    break;
+                }
+            }
+
+            const int min_escape = 100;
+            const int max_escape = iters - 10;
+            if (escaped && escape_iter >= min_escape && escape_iter < max_escape)
+            {
+                int step = 2;
+                for (size_t j = 0; j < orbit.size(); j += step)
+                {
+                    const auto &pt = orbit[j];
+                    f64 fx = (pt.first - this->x1) / (this->x2 - this->x1);
+                    f64 fy = (this->y2 - pt.second) / (this->y2 - this->y1);
+                    // Map to supersampled grid
+                    int x = static_cast<int>(fx * (ss_width - 1));
+                    int y = static_cast<int>(fy * (ss_height - 1));
+                    if (x >= 0 && x < ss_width && y >= 0 && y < ss_height)
+                        local_hist[y][x]++;
+                }
+            }
+        }
+
+#pragma omp critical
+        {
+            for (int y = 0; y < ss_height; ++y)
+                for (int x = 0; x < ss_width; ++x)
+                    hist[y][x] += local_hist[y][x];
+        }
+    }
+
+    // Downsample to target resolution with box filter
+    std::vector<std::vector<f64>> downsampled(this->height, std::vector<f64>(this->width, 0.0));
+    for (int y = 0; y < this->height; ++y)
+    {
+        for (int x = 0; x < this->width; ++x)
+        {
+            i64 sum = 0;
+            for (int dy = 0; dy < supersample; ++dy)
+                for (int dx = 0; dx < supersample; ++dx)
+                    sum += hist[y * supersample + dy][x * supersample + dx];
+            downsampled[y][x] = static_cast<f64>(sum) / (supersample * supersample);
+        }
+    }
+
+    // Find max for normalization
+    f64 max_val = 1e-8;
+    for (int y = 0; y < this->height; ++y)
+        for (int x = 0; x < this->width; ++x)
+            if (downsampled[y][x] > max_val)
+                max_val = downsampled[y][x];
+
+    // Map histogram to image
+    for (int y = 0; y < this->height; ++y)
+    {
+        for (int x = 0; x < this->width; ++x)
+        {
+            f64 t = downsampled[y][x] / max_val;
+            color_t color = colormap ? colormap(t) : color_t{static_cast<channel>(t * 255), static_cast<channel>(t * 255), static_cast<channel>(t * 255)};
+            this->pixels[y * width + x].color = color;
+        }
+    }
+}
+
 void Image::Save(const char *filename)
 {
     FILE *fp = fopen(filename, "wb");
